@@ -147,10 +147,12 @@ pre > button,
 
 	parts.push(`
 table {
-  width: auto;
+  width: 100% !important;
   max-width: 100%;
   table-layout: auto;
   border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
   margin-top: ${e.table.marginTop}pt;
   margin-bottom: ${e.table.marginBottom}pt;
   font-family: ${e.table.fontFamily};
@@ -162,8 +164,10 @@ table {
 /* User-adjusted tables: width comes from inline style / layout CSS */
 table.bpf-table-sized {
   table-layout: fixed !important;
-  /* Do not clamp here — inline width/min/max pin the editor/PDF size. */
+  width: auto !important;
   max-width: none;
+  margin-left: auto;
+  margin-right: auto;
 }
 table.bpf-table-sized th,
 table.bpf-table-sized td {
@@ -193,8 +197,29 @@ tr { break-inside: avoid; }
 `);
 
 	parts.push(rule(".callout", e.callout, frameStyleExtras("callout", e.callout)));
-	parts.push(rule(".callout-title", e.calloutTitle));
-	parts.push(`.callout-content { margin-top: 4pt; }`);
+	parts.push(rule(".callout-title", e.calloutTitle, [
+		"display: flex !important",
+		"align-items: center !important",
+		"gap: 6px !important",
+	]));
+	parts.push(`
+.callout-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+.callout-icon svg {
+  width: 13pt !important;
+  height: 13pt !important;
+}
+.callout-title-inner {
+  display: inline-block !important;
+  flex: 1 1 auto !important;
+}
+.callout-content { margin-top: 4pt; }
+`);
 
 	parts.push(`
 img {

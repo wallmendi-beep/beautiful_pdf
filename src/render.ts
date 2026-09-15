@@ -77,6 +77,7 @@ export async function renderNoteHtml(
 		applyNoteImageLayouts(viewEl, options.imageLayouts);
 
 		const css = profileToCss(profile);
+		const vaultSnippetsCss = await getActiveVaultSnippetsCss(app);
 		const layoutCss = [
 			tableLayoutsToCss(options.tableLayouts, pageWmm),
 			imageLayoutsToCss(options.imageLayouts),
@@ -92,6 +93,7 @@ export async function renderNoteHtml(
 <meta charset="utf-8" />
 <title>${escapeAttr(title)}</title>
 <style>${css}</style>
+${vaultSnippetsCss ? `<style id="bpf-vault-snippets">${vaultSnippetsCss}</style>` : ""}
 <style id="bpf-page-shell">${shellCss}</style>
 ${layoutCss ? `<style id="bpf-layouts">${layoutCss}</style>` : ""}
 </head>
@@ -384,4 +386,24 @@ function contentWidthPx(profile: Profile): number {
 
 function escapeAttr(s: string): string {
 	return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+
+async function getActiveVaultSnippetsCss(app: App): Promise<string> {
+	try {
+		const customCss = (app as any).customCss;
+		const enabled = customCss?.enabledSnippets;
+		if (!enabled || !Array.isArray(enabled)) return "";
+		const snippets: string[] = [];
+		for (const name of enabled) {
+			const path = `.obsidian/snippets/${name}.css`;
+			if (await app.vault.adapter.exists(path)) {
+				const content = await app.vault.adapter.read(path);
+				snippets.push(`/* Vault Snippet: ${name} */\n${content}`);
+			}
+		}
+		return snippets.join("\n\n");
+	} catch (e) {
+		console.warn("Beautiful PDF: could not load vault snippets", e);
+		return "";
+	}
 }

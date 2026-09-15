@@ -488,10 +488,12 @@ pre > button,
   parts.push(rule("hr", e.hr, hrStyleExtras(e.hr)));
   parts.push(`
 table {
-  width: auto;
+  width: 100% !important;
   max-width: 100%;
   table-layout: auto;
   border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
   margin-top: ${e.table.marginTop}pt;
   margin-bottom: ${e.table.marginBottom}pt;
   font-family: ${e.table.fontFamily};
@@ -503,8 +505,10 @@ table {
 /* User-adjusted tables: width comes from inline style / layout CSS */
 table.bpf-table-sized {
   table-layout: fixed !important;
-  /* Do not clamp here \u2014 inline width/min/max pin the editor/PDF size. */
+  width: auto !important;
   max-width: none;
+  margin-left: auto;
+  margin-right: auto;
 }
 table.bpf-table-sized th,
 table.bpf-table-sized td {
@@ -533,8 +537,29 @@ th[align="right"], td[align="right"] { text-align: right !important; }
 tr { break-inside: avoid; }
 `);
   parts.push(rule(".callout", e.callout, frameStyleExtras("callout", e.callout)));
-  parts.push(rule(".callout-title", e.calloutTitle));
-  parts.push(`.callout-content { margin-top: 4pt; }`);
+  parts.push(rule(".callout-title", e.calloutTitle, [
+    "display: flex !important",
+    "align-items: center !important",
+    "gap: 6px !important"
+  ]));
+  parts.push(`
+.callout-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+.callout-icon svg {
+  width: 13pt !important;
+  height: 13pt !important;
+}
+.callout-title-inner {
+  display: inline-block !important;
+  flex: 1 1 auto !important;
+}
+.callout-content { margin-top: 4pt; }
+`);
   parts.push(`
 img {
   max-width: 100%;
@@ -1538,6 +1563,7 @@ async function renderNoteHtml(app, file, profile, options = {}) {
     applyNoteTableLayouts(viewEl, options.tableLayouts, pageW);
     applyNoteImageLayouts(viewEl, options.imageLayouts);
     const css = profileToCss(profile);
+    const vaultSnippetsCss = await getActiveVaultSnippetsCss(app);
     const layoutCss = [
       tableLayoutsToCss(options.tableLayouts, pageWmm),
       imageLayoutsToCss(options.imageLayouts)
@@ -1551,6 +1577,7 @@ async function renderNoteHtml(app, file, profile, options = {}) {
 <meta charset="utf-8" />
 <title>${escapeAttr(title)}</title>
 <style>${css}</style>
+${vaultSnippetsCss ? `<style id="bpf-vault-snippets">${vaultSnippetsCss}</style>` : ""}
 <style id="bpf-page-shell">${shellCss}</style>
 ${layoutCss ? `<style id="bpf-layouts">${layoutCss}</style>` : ""}
 </head>
@@ -1804,6 +1831,27 @@ function contentWidthPx(profile) {
 }
 function escapeAttr(s) {
   return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+async function getActiveVaultSnippetsCss(app) {
+  try {
+    const customCss = app.customCss;
+    const enabled = customCss == null ? void 0 : customCss.enabledSnippets;
+    if (!enabled || !Array.isArray(enabled))
+      return "";
+    const snippets = [];
+    for (const name of enabled) {
+      const path = `.obsidian/snippets/${name}.css`;
+      if (await app.vault.adapter.exists(path)) {
+        const content = await app.vault.adapter.read(path);
+        snippets.push(`/* Vault Snippet: ${name} */
+${content}`);
+      }
+    }
+    return snippets.join("\n\n");
+  } catch (e) {
+    console.warn("Beautiful PDF: could not load vault snippets", e);
+    return "";
+  }
 }
 
 // src/export.ts
