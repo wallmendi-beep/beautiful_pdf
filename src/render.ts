@@ -77,9 +77,20 @@ export async function renderNoteHtml(
 		applyNoteImageLayouts(viewEl, options.imageLayouts);
 
 		const css = profileToCss(profile);
-		const vaultSnippetsCss = profile.special?.enableVaultSnippets
-			? await getActiveVaultSnippetsCss(app)
-			: "";
+		let vaultSnippetsCss = "";
+		if (profile.special?.enableVaultSnippets) {
+			const loadedSnippets = await getActiveVaultSnippetsCss(app);
+			const screenMatchCss = `
+/* Screen match mode: restore headings H2-H6 to natural left alignment and screen text color */
+h2, h3, h4, h5, h6,
+.markdown-rendered h2, .markdown-rendered h3,
+.markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 {
+  text-align: left !important;
+  color: #222222 !important;
+}
+`;
+			vaultSnippetsCss = `${loadedSnippets}\n${screenMatchCss}`;
+		}
 		const layoutCss = [
 			tableLayoutsToCss(options.tableLayouts, pageWmm),
 			imageLayoutsToCss(options.imageLayouts),
@@ -392,11 +403,29 @@ function escapeAttr(s: string): string {
 
 async function getActiveVaultSnippetsCss(app: App): Promise<string> {
 	try {
+		let names: string[] = [];
 		const customCss = (app as any).customCss;
 		const enabled = customCss?.enabledSnippets;
-		if (!enabled || !Array.isArray(enabled)) return "";
+		if (enabled instanceof Set) {
+			names = Array.from(enabled);
+		} else if (Array.isArray(enabled)) {
+			names = enabled;
+		}
+
+		if (names.length === 0) {
+			try {
+				if (await app.vault.adapter.exists(".obsidian/appearance.json")) {
+					const raw = await app.vault.adapter.read(".obsidian/appearance.json");
+					const data = JSON.parse(raw);
+					if (Array.isArray(data.enabledCssSnippets)) {
+						names = data.enabledCssSnippets;
+					}
+				}
+			} catch {}
+		}
+
 		const snippets: string[] = [];
-		for (const name of enabled) {
+		for (const name of names) {
 			const path = `.obsidian/snippets/${name}.css`;
 			if (await app.vault.adapter.exists(path)) {
 				const content = await app.vault.adapter.read(path);
