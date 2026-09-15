@@ -139,6 +139,8 @@ export interface SpecialOptions {
 	enableImageAdjust: boolean;
 	/** Expand {{page}}, {{title}}, … in header/footer. Default on. */
 	enablePlaceholders: boolean;
+	/** Include active Obsidian CSS snippets into PDF export. Default off (preserves pure profile). */
+	enableVaultSnippets?: boolean;
 }
 
 export interface Profile {
@@ -161,6 +163,7 @@ export function createDefaultSpecialOptions(
 		enableTableAdjust: true,
 		enableImageAdjust: true,
 		enablePlaceholders: true,
+		enableVaultSnippets: false,
 		...overrides,
 	};
 }

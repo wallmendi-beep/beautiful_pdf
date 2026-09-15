@@ -41,6 +41,7 @@ type UiState = {
 	headerOpen: boolean;
 	footerOpen: boolean;
 	placeholdersOpen: boolean;
+	vaultSnippetsOpen: boolean;
 	morePageOpen: boolean;
 	groupOpen: Record<string, boolean>;
 	elementOpen: Partial<Record<ElementKey, boolean>>;
@@ -59,6 +60,7 @@ export class BeautifulPdfSettingTab extends PluginSettingTab {
 		headerOpen: false,
 		footerOpen: false,
 		placeholdersOpen: false,
+		vaultSnippetsOpen: false,
 		morePageOpen: false,
 		groupOpen: {},
 		elementOpen: {},
@@ -690,6 +692,35 @@ export class BeautifulPdfSettingTab extends PluginSettingTab {
 				const tip = body.createDiv({ cls: "beautiful-pdf-tip" });
 				tip.appendText(
 					"When on, placeholders in Page → Header / Footer become real values in the PDF (page numbers, note title, Properties fields, file dates, and so on). When off, the {{braces}} print as written.",
+				);
+			},
+		);
+
+		this.collapsible(
+			section,
+			"Obsidian CSS snippets (WYSIWYG screen match)",
+			special.enableVaultSnippets ? "On" : "Off",
+			this.ui.vaultSnippetsOpen,
+			(open) => {
+				this.ui.vaultSnippetsOpen = open;
+			},
+			(body) => {
+				new Setting(body)
+					.setName("Include vault CSS snippets")
+					.setDesc("Inject active Obsidian CSS snippets into PDF export (allows screen fonts and heading styles to take precedence)")
+					.addToggle((tg) =>
+						tg.setValue(special.enableVaultSnippets ?? false).onChange((v) => {
+							void (async () => {
+								special.enableVaultSnippets = v;
+								await this.plugin.saveSettings();
+								this.refreshSettings();
+							})();
+						}),
+					);
+
+				const tip = body.createDiv({ cls: "beautiful-pdf-tip" });
+				tip.appendText(
+					"When ON, active CSS snippets (like kopub-style) are loaded so the PDF matches your screen. When OFF, the pure Beautiful PDF profile styles are used as before.",
 				);
 			},
 		);

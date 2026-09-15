@@ -77,7 +77,9 @@ export async function renderNoteHtml(
 		applyNoteImageLayouts(viewEl, options.imageLayouts);
 
 		const css = profileToCss(profile);
-		const vaultSnippetsCss = await getActiveVaultSnippetsCss(app);
+		const vaultSnippetsCss = profile.special?.enableVaultSnippets
+			? await getActiveVaultSnippetsCss(app)
+			: "";
 		const layoutCss = [
 			tableLayoutsToCss(options.tableLayouts, pageWmm),
 			imageLayoutsToCss(options.imageLayouts),

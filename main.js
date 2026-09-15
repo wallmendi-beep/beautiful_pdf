@@ -1532,7 +1532,7 @@ function resetImageSizing(img) {
 
 // src/render.ts
 async function renderNoteHtml(app, file, profile, options = {}) {
-  var _a, _b, _c;
+  var _a, _b, _c, _d;
   const raw = await app.vault.cachedRead(file);
   const markdown = ((_a = profile.special) == null ? void 0 : _a.enablePageBreaks) === false ? raw : applyPageBreakMarkers(raw);
   const title = profile.page.useFilenameAsTitle ? file.basename : ((_c = (_b = app.metadataCache.getFileCache(file)) == null ? void 0 : _b.frontmatter) == null ? void 0 : _c.title) || file.basename;
@@ -1563,7 +1563,7 @@ async function renderNoteHtml(app, file, profile, options = {}) {
     applyNoteTableLayouts(viewEl, options.tableLayouts, pageW);
     applyNoteImageLayouts(viewEl, options.imageLayouts);
     const css = profileToCss(profile);
-    const vaultSnippetsCss = await getActiveVaultSnippetsCss(app);
+    const vaultSnippetsCss = ((_d = profile.special) == null ? void 0 : _d.enableVaultSnippets) ? await getActiveVaultSnippetsCss(app) : "";
     const layoutCss = [
       tableLayoutsToCss(options.tableLayouts, pageWmm),
       imageLayoutsToCss(options.imageLayouts)
@@ -2171,6 +2171,7 @@ function createDefaultSpecialOptions(overrides = {}) {
     enableTableAdjust: true,
     enableImageAdjust: true,
     enablePlaceholders: true,
+    enableVaultSnippets: false,
     ...overrides
   };
 }
@@ -4367,6 +4368,7 @@ var BeautifulPdfSettingTab = class extends import_obsidian7.PluginSettingTab {
       headerOpen: false,
       footerOpen: false,
       placeholdersOpen: false,
+      vaultSnippetsOpen: false,
       morePageOpen: false,
       groupOpen: {},
       elementOpen: {}
@@ -4904,6 +4906,33 @@ var BeautifulPdfSettingTab = class extends import_obsidian7.PluginSettingTab {
         const tip = body.createDiv({ cls: "beautiful-pdf-tip" });
         tip.appendText(
           "When on, placeholders in Page \u2192 Header / Footer become real values in the PDF (page numbers, note title, Properties fields, file dates, and so on). When off, the {{braces}} print as written."
+        );
+      }
+    );
+    this.collapsible(
+      section,
+      "Obsidian CSS snippets (WYSIWYG screen match)",
+      special.enableVaultSnippets ? "On" : "Off",
+      this.ui.vaultSnippetsOpen,
+      (open) => {
+        this.ui.vaultSnippetsOpen = open;
+      },
+      (body) => {
+        new import_obsidian7.Setting(body).setName("Include vault CSS snippets").setDesc("Inject active Obsidian CSS snippets into PDF export (allows screen fonts and heading styles to take precedence)").addToggle(
+          (tg) => {
+            var _a;
+            return tg.setValue((_a = special.enableVaultSnippets) != null ? _a : false).onChange((v) => {
+              void (async () => {
+                special.enableVaultSnippets = v;
+                await this.plugin.saveSettings();
+                this.refreshSettings();
+              })();
+            });
+          }
+        );
+        const tip = body.createDiv({ cls: "beautiful-pdf-tip" });
+        tip.appendText(
+          "When ON, active CSS snippets (like kopub-style) are loaded so the PDF matches your screen. When OFF, the pure Beautiful PDF profile styles are used as before."
         );
       }
     );
