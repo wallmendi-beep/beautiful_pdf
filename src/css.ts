@@ -172,7 +172,6 @@ table.bpf-table-sized td {
 th, td {
   border: 1px solid #bbb;
   padding: 5pt 7pt;
-  text-align: left;
   vertical-align: top;
   word-break: keep-all;
   overflow-wrap: anywhere;
@@ -185,7 +184,11 @@ th {
   font-weight: ${e.tableHeader.fontWeight};
   color: ${e.tableHeader.color};
   background: ${e.tableHeader.backgroundColor ?? "#f0f0f0"};
+  text-align: center;
 }
+th[align="center"], td[align="center"] { text-align: center !important; }
+th[align="left"], td[align="left"] { text-align: left !important; }
+th[align="right"], td[align="right"] { text-align: right !important; }
 tr { break-inside: avoid; }
 `);
 
