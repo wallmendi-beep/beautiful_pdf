@@ -3964,9 +3964,37 @@ var PreviewModal = class extends import_obsidian5.Modal {
       if (p.id === this.plugin.settings.activeProfileId)
         opt.selected = true;
     }
+    const snippetToggleBtn = toolbar.createEl("button", {
+      cls: "beautiful-pdf-snippet-toggle"
+    });
+    const updateSnippetBtn = () => {
+      var _a;
+      const active = getActiveProfile(this.plugin.settings);
+      const enabled = !!((_a = active.special) == null ? void 0 : _a.enableVaultSnippets);
+      snippetToggleBtn.setText(enabled ? "\u{1F3A8} \uD654\uBA74 \uC11C\uC2DD \uBC18\uC601 (ON)" : "\u{1F4C4} \uBDF0\uD53C \uAE30\uBCF8 \uC11C\uC2DD (OFF)");
+      snippetToggleBtn.title = enabled ? "\uD604\uC7AC \uC635\uC2DC\uB514\uC5B8 \uD654\uBA74 \uC11C\uC2DD(\uC2A4\uB2C8\uD3AB)\uC774 \uBC18\uC601 \uC911\uC785\uB2C8\uB2E4. \uD074\uB9AD\uD558\uBA74 \uBDF0\uD53C \uAE30\uBCF8 \uD504\uB85C\uD544 \uC11C\uC2DD\uC73C\uB85C \uC804\uD658\uD569\uB2C8\uB2E4." : "\uD604\uC7AC \uBDF0\uD53C \uAE30\uBCF8 \uD504\uB85C\uD544 \uC11C\uC2DD\uC774 \uC801\uC6A9 \uC911\uC785\uB2C8\uB2E4. \uD074\uB9AD\uD558\uBA74 \uC635\uC2DC\uB514\uC5B8 \uD654\uBA74 \uC11C\uC2DD\uC744 \uBC18\uC601\uD569\uB2C8\uB2E4.";
+      snippetToggleBtn.toggleClass("is-active", enabled);
+      snippetToggleBtn.toggleClass("mod-cta", enabled);
+    };
+    updateSnippetBtn();
+    snippetToggleBtn.onclick = async () => {
+      const active = getActiveProfile(this.plugin.settings);
+      if (!active.special) {
+        active.special = createDefaultSpecialOptions();
+      }
+      active.special.enableVaultSnippets = !active.special.enableVaultSnippets;
+      await this.plugin.saveSettings();
+      updateSnippetBtn();
+      new import_obsidian5.Notice(
+        active.special.enableVaultSnippets ? "\u{1F3A8} \uD654\uBA74 \uC11C\uC2DD(\uC2A4\uB2C8\uD3AB) \uBC18\uC601 \uBAA8\uB4DC\uB85C \uC804\uD658\uB418\uC5C8\uC2B5\uB2C8\uB2E4." : "\u{1F4C4} \uBDF0\uD53C \uAE30\uBCF8 \uD504\uB85C\uD544 \uC11C\uC2DD \uBAA8\uB4DC\uB85C \uC804\uD658\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
+        2e3
+      );
+      await this.refresh();
+    };
     select.onchange = async () => {
       this.plugin.settings.activeProfileId = select.value;
       await this.plugin.saveSettings();
+      updateSnippetBtn();
       await this.refresh();
     };
     const refreshBtn = toolbar.createEl("button", { text: "Refresh" });

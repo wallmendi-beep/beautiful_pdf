@@ -10,7 +10,7 @@ import {
 import type { NoteImageLayouts } from "./image-layout";
 import { layoutsForExport, TableAdjustModal, tableAdjustEnabled } from "./table-editor";
 import type { NoteTableLayouts } from "./table-layout";
-import type { Profile } from "./types";
+import { createDefaultSpecialOptions, type Profile } from "./types";
 
 export interface PreviewLayoutOverrides {
 	tableLayouts?: NoteTableLayouts | null;
@@ -53,9 +53,42 @@ export class PreviewModal extends Modal {
 			const opt = select.createEl("option", { text: p.name, value: p.id });
 			if (p.id === this.plugin.settings.activeProfileId) opt.selected = true;
 		}
+		const snippetToggleBtn = toolbar.createEl("button", {
+			cls: "beautiful-pdf-snippet-toggle",
+		});
+		const updateSnippetBtn = () => {
+			const active = getActiveProfile(this.plugin.settings);
+			const enabled = !!active.special?.enableVaultSnippets;
+			snippetToggleBtn.setText(enabled ? "🎨 화면 서식 반영 (ON)" : "📄 뷰피 기본 서식 (OFF)");
+			snippetToggleBtn.title = enabled
+				? "현재 옵시디언 화면 서식(스니펫)이 반영 중입니다. 클릭하면 뷰피 기본 프로필 서식으로 전환합니다."
+				: "현재 뷰피 기본 프로필 서식이 적용 중입니다. 클릭하면 옵시디언 화면 서식을 반영합니다.";
+			snippetToggleBtn.toggleClass("is-active", enabled);
+			snippetToggleBtn.toggleClass("mod-cta", enabled);
+		};
+		updateSnippetBtn();
+
+		snippetToggleBtn.onclick = async () => {
+			const active = getActiveProfile(this.plugin.settings);
+			if (!active.special) {
+				active.special = createDefaultSpecialOptions();
+			}
+			active.special.enableVaultSnippets = !active.special.enableVaultSnippets;
+			await this.plugin.saveSettings();
+			updateSnippetBtn();
+			new Notice(
+				active.special.enableVaultSnippets
+					? "🎨 화면 서식(스니펫) 반영 모드로 전환되었습니다."
+					: "📄 뷰피 기본 프로필 서식 모드로 전환되었습니다.",
+				2000,
+			);
+			await this.refresh();
+		};
+
 		select.onchange = async () => {
 			this.plugin.settings.activeProfileId = select.value;
 			await this.plugin.saveSettings();
+			updateSnippetBtn();
 			await this.refresh();
 		};
 

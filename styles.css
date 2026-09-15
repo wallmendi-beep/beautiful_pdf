@@ -706,3 +706,12 @@
 .beautiful-pdf-el-editors .setting-item-control select {
 	max-width: 180px;
 }
+
+.beautiful-pdf-snippet-toggle {
+	font-weight: 600;
+	cursor: pointer;
+}
+.beautiful-pdf-snippet-toggle.is-active {
+	background-color: var(--interactive-accent) !important;
+	color: var(--text-on-accent) !important;
+}
