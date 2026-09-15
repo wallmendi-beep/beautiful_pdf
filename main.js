@@ -2443,7 +2443,7 @@ function basePage(overrides = {}) {
     marginLeftMm: 18,
     marginRightMm: 18,
     lineHeight: 170,
-    useFilenameAsTitle: true,
+    useFilenameAsTitle: false,
     headerLeft: "",
     headerCenter: "",
     headerRight: "",
@@ -2504,7 +2504,7 @@ function createReportProfile() {
       marginLeftMm: 24,
       marginRightMm: 24,
       lineHeight: 165,
-      useFilenameAsTitle: true,
+      useFilenameAsTitle: false,
       footerCenter: "- {{page}} -"
     }),
     elements,
@@ -2555,7 +2555,7 @@ function createLifeProfile() {
       marginLeftMm: 14,
       marginRightMm: 14,
       lineHeight: 200,
-      useFilenameAsTitle: true,
+      useFilenameAsTitle: false,
       footerCenter: "",
       footerRight: "{{page}}"
     }),
@@ -2614,7 +2614,7 @@ function createPlanProfile() {
       marginLeftMm: 16,
       marginRightMm: 16,
       lineHeight: 150,
-      useFilenameAsTitle: true,
+      useFilenameAsTitle: false,
       headerCenter: "{{page}} / {{pages}}",
       headerRight: "Proposal",
       footerCenter: ""
