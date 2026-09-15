@@ -1547,12 +1547,15 @@ async function renderNoteHtml(app, file, profile, options = {}) {
   const viewEl = host.createDiv({
     cls: "markdown-preview-view markdown-rendered"
   });
-  if (profile.page.useFilenameAsTitle) {
-    viewEl.createEl("h1", { text: title, cls: "__title__" });
-  }
   try {
     await import_obsidian.MarkdownRenderer.render(app, markdown, viewEl, file.path, comp);
     await waitForEmbeds(viewEl);
+    if (profile.page.useFilenameAsTitle && !viewEl.querySelector("h1")) {
+      const titleEl = document.createElement("h1");
+      titleEl.className = "__title__";
+      titleEl.textContent = title;
+      viewEl.prepend(titleEl);
+    }
     applyWritingAssetPdfMode(app, viewEl);
     convertCanvases(viewEl);
     await rewriteInternalImages(app, file, viewEl);
